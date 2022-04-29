@@ -1,0 +1,31 @@
+server:
+  compression:
+    enabled: true
+    mime-types: text/css,text/javascript,application/javascript
+    min-response-size: 10240
+  port: 8080
+
+logging:
+  level:
+    root: info
+    com.xiao.yi.*.mapper: debug
+    com.xiao.yi.file.mapper: debug
+    com.xiao.yi.user.mapper: debug
+    com.xiao.yi.blog.mapper: debug
+
+mybatis:
+  mapper-locations: classpath*:mappers/*xml
+
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+
+spring:
+  datasource:
+    url:
+    username:
+    password:
+    hikari:
+      max-lifetime: 300000

@@ -1,0 +1,35 @@
+**/node_modules
+**/dist
+blog-ui/src/.umi
+blog-ui/src/.umi-production
+**/.vscode
+**/.husky
+
+blog-ui/src/utils/request-temp.js
+_roadhog-api-doc
+
+# misc
+blog-ui/.DS_Store
+blog-ui/npm-debug.log*
+blog-ui/yarn-error.log
+
+.idea
+blog-ui/yarn.lock
+blog-ui/package-lock.json
+blog-ui/pnpm-lock.yaml
+blog-ui/*bak
+
+blog-ui/.history
+blog-ui/*.log
+blog-ui/functions/*
+blog-ui/.temp/**
+
+# screenshot
+blog-ui/screenshot
+blog-ui/.firebase
+blog-ui/.eslintcache
+
+blog-ui/build
+
+**/**/target
+
