@@ -11,6 +11,9 @@ public class BlogFileModel {
     @Entity.Column(value = "path")
     private String path;
 
+    @Entity.Column(value = "state")
+    private Integer state;
+
     public Long getId() {
         return id;
     }
@@ -25,5 +28,13 @@ public class BlogFileModel {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public Integer getState() {
+        return state;
+    }
+
+    public void setState(Integer state) {
+        this.state = state;
     }
 }

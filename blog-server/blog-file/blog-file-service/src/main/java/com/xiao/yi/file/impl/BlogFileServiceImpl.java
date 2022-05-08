@@ -1,10 +1,14 @@
 package com.xiao.yi.file.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
+import com.xiao.yi.file.api.BlogFileBllService;
 import com.xiao.yi.file.api.BlogFileService;
+import com.xiao.yi.file.enums.FileState;
 import com.xiao.yi.file.mapper.BlogFileMapper;
+import com.xiao.yi.file.model.BlogFileBllModel;
 import com.xiao.yi.file.model.BlogFileModel;
 import io.minio.MinioClient;
 import io.minio.PutObjectOptions;
@@ -15,8 +19,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class BlogFileServiceImpl extends AbstractService<BlogFileModel, Long, BlogFileMapper> implements BlogFileService {
@@ -26,6 +30,9 @@ public class BlogFileServiceImpl extends AbstractService<BlogFileModel, Long, Bl
 
     @Autowired
     private MinioClient minioClient;
+
+    @Autowired
+    private BlogFileBllService fileBllService;
 
     @Override
     public List<BlogFileModel> getList(BlogFileModel fileModel) {
@@ -48,6 +55,13 @@ public class BlogFileServiceImpl extends AbstractService<BlogFileModel, Long, Bl
     }
 
     @Override
+    public int delete(Collection<Long> ids) {
+        Example<BlogFileModel> example = new Example<>();
+        example.createCriteria().andIn(BlogFileModel::getId, ids);
+        return delete(example);
+    }
+
+    @Override
     public BlogFileModel upload(InputStream inputStream) {
         int year = DateUtil.thisYear();
         int month = DateUtil.thisMonth() + 1;
@@ -59,6 +73,7 @@ public class BlogFileServiceImpl extends AbstractService<BlogFileModel, Long, Bl
         }
         BlogFileModel fileModel = new BlogFileModel();
         fileModel.setPath(path);
+        fileModel.setState(FileState.TEMP.getIndex());
         return save(fileModel);
     }
 
@@ -70,6 +85,46 @@ public class BlogFileServiceImpl extends AbstractService<BlogFileModel, Long, Bl
             return minioClient.getObject(minioBucket, fileModel.getPath());
         } catch (Exception e) {
             throw new RuntimeException("获取文件失败", e);
+        }
+    }
+
+    @Override
+    public void commit(Long bllId, List<Long> fileIds) {
+        Assert.notNull(bllId, "业务id不能为空");
+        Assert.notEmpty(fileIds, "文件ids不能为空");
+        fileIds.stream().filter(Objects::nonNull).forEach(fileId -> {
+            BlogFileModel fileModel = new BlogFileModel();
+            fileModel.setState(FileState.PERSISTENCE.getIndex());
+            fileModel.setId(fileId);
+            updateSelective(fileModel);
+        });
+        final BlogFileBllModel query = new BlogFileBllModel();
+        query.setBllId(bllId);
+        final List<BlogFileBllModel> fileBllList = fileBllService.list(query);
+        List<Long> unExistsFileIds = null;
+
+        if (CollectionUtil.isNotEmpty(fileBllList)) {
+            final Map<Long, Long> delFileBllIdToFileId = fileBllList.stream()
+                    .filter(item -> !fileIds.contains(item.getBllId()))
+                    .collect(Collectors.toMap(BlogFileBllModel::getId, BlogFileBllModel::getFileId));
+            if (CollectionUtil.isNotEmpty(delFileBllIdToFileId)) {
+                delete(delFileBllIdToFileId.values());
+                fileBllService.delete(delFileBllIdToFileId.keySet());
+            }
+
+            final List<Long> existsFileIds = fileBllList.stream().map(BlogFileBllModel::getFileId).collect(Collectors.toList());
+            unExistsFileIds = fileIds.stream().filter(item -> !existsFileIds.contains(item)).collect(Collectors.toList());
+        } else {
+            unExistsFileIds = fileIds;
+        }
+
+        if (CollectionUtil.isNotEmpty(unExistsFileIds)) {
+            unExistsFileIds.forEach(item -> {
+                BlogFileBllModel bllModel = new BlogFileBllModel();
+                bllModel.setFileId(item);
+                bllModel.setBllId(bllId);
+                fileBllService.save(bllModel);
+            });
         }
     }
 }

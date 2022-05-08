@@ -22,7 +22,7 @@ public class BlogFileController {
 
     @PostMapping("/upload")
     @ResponseBody
-    public ResponseModel<BlogFileModel> upload(@RequestPart("file") MultipartFile file) {
+    public ResponseModel<BlogFileModel> upload(@RequestParam("file") MultipartFile file) {
         try {
             BlogFileModel fileModel = fileService.upload(file.getInputStream());
             return ResponseModel.success(fileModel);

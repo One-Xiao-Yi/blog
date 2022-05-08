@@ -7,13 +7,15 @@ enum HttpMethod {
 }
 
 enum ContentTypeHeader {
-  JSON
+  JSON, FORM_DATA
 }
 
 const headers = (contextType: ContentTypeHeader) => {
   switch (contextType) {
     case ContentTypeHeader.JSON:
       return {'Content-Type': 'application/json',};
+    case ContentTypeHeader.FORM_DATA:
+      return {'Content-Type': 'multipart/form-data',};
     default:
       return {};
   }
@@ -56,4 +58,10 @@ export async function saveBlog(body: API.BlogModel, options?: {[key: string]: an
 
 export async function getBlogDetail(body: string, options?: {[key: string]: any}){
   return executeRequest<API.BlogObjectResponse>('/api/blog/detail/' + body, HttpMethod.POST, body, null, options);
+}
+
+export async function fileUpload(file: File, options?: {[key: string]: any}){
+  const form = new FormData();
+  form.append("file", file);
+  return executeRequest<API.FileObjectResponse>('/api/file/upload/', HttpMethod.POST, form, null, {requestType: "form"});
 }

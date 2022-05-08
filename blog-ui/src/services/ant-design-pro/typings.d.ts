@@ -50,6 +50,7 @@ declare namespace API {
     path?: string,
     createdBy: string,
     src?: string,
+    files?: string[],
   }
 
   type BlogListResponse = ResponseModel & {

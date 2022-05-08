@@ -22,10 +22,23 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.regex.MatchResult;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class BlogBlogServiceImpl extends AbstractService<BlogBlogModel, Long, BlogBlogMapper> implements BlogBlogService {
+
+    private final static String IMAGE_PATTERN_STR = "\\!\\[.*?\\)";
+
+    private final static Pattern IMAGE_PATTERN = Pattern.compile(IMAGE_PATTERN_STR);
+
+    private final static String FILE_ID_PATTERN_STR = "/[0-9]+";
+
+    private final static Pattern FILE_ID_PATTERN = Pattern.compile(FILE_ID_PATTERN_STR);
 
     @Autowired
     private BlogFileService fileService;
@@ -47,6 +60,13 @@ public class BlogBlogServiceImpl extends AbstractService<BlogBlogModel, Long, Bl
     @Override
     public BlogBlogModel save(BlogBlogModel entity) {
         Assert.isTrue(ObjectUtil.isAllNotEmpty(entity.getSrc(), entity.getTitle(), entity.getDescription(), entity.getCreatedBy()), "信息不完整");
+        List<Long> fileIds = IMAGE_PATTERN.matcher(entity.getSrc()).results()
+                .map(MatchResult::group)
+                .map(item -> FILE_ID_PATTERN.matcher(item).results().map(MatchResult::group).findFirst().orElse(null))
+                .filter(Objects::nonNull)
+                .map(item -> item.replace("/", ""))
+                .map(Long::parseLong)
+                .collect(Collectors.toList());
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(entity.getSrc().getBytes(StandardCharsets.UTF_8))){
             final BlogFileModel file = fileService.upload(byteArrayInputStream);
             entity.setPath(file.getId().toString());

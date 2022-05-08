@@ -3,7 +3,7 @@ import {history} from "umi";
 import {getBlogDetail} from "@/services/ant-design-pro/api";
 import ProCard from "@ant-design/pro-card";
 import {Descriptions, PageHeader} from "antd";
-import Markdown from "@/pages/markdown/Markdown";
+import EditMarkdown from "@/pages/markdown/EditMarkdown";
 
 const ReadBlog : React.FC = () => {
 
@@ -49,7 +49,7 @@ const ReadBlog : React.FC = () => {
       <ProCard colSpan={24} layout={"center"} direction={'row'}>
         <ProCard colSpan={24} bordered>
           <div style={{height: 650}}>
-            <Markdown markdownSrc={blog.src || ""} />
+            <EditMarkdown markdownSrc={blog.src || ""} readonly={true} />
           </div>
         </ProCard>
       </ProCard>

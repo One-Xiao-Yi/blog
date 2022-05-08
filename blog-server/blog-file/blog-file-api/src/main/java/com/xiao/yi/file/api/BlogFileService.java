@@ -3,6 +3,7 @@ package com.xiao.yi.file.api;
 import com.xiao.yi.file.model.BlogFileModel;
 
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 
 public interface BlogFileService {
@@ -17,8 +18,12 @@ public interface BlogFileService {
 
     int delete(String ids);
 
+    int delete(Collection<Long> ids);
+
     BlogFileModel upload(InputStream inputStream);
 
     InputStream download(Long id);
+
+    void commit(Long bllId, List<Long> fileIds);
 
 }

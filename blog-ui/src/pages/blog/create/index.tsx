@@ -2,16 +2,17 @@ import React, {useState} from "react";
 import {useModel} from "@@/plugin-model/useModel";
 import ProCard from "@ant-design/pro-card";
 import {Button, Input, message} from "antd";
-import {saveBlog} from "@/services/ant-design-pro/api";
+import {fileUpload, saveBlog} from "@/services/ant-design-pro/api";
 import EditMarkdown from "@/pages/markdown/EditMarkdown";
 
 const Create : React.FC = () => {
 
-  const [markdownSrc] = useState('asdasdas');
+  const [markdownSrc, setMarkdownSrc] = useState('');
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [blogId, setBlogId] = useState("");
+  const [files, setFiles] = useState<string[]>([]);
 
   const {initialState} = useModel('@@initialState');
 
@@ -30,6 +31,7 @@ const Create : React.FC = () => {
         description: description,
         createdBy: initialState.currentUser.id,
         src: markdownSrc,
+        files: files,
       }
       try {
         const blogRes : API.BlogObjectResponse = await saveBlog(blog);
@@ -47,6 +49,18 @@ const Create : React.FC = () => {
     }
   }
 
+  const imageUpload = async (file: any) => {
+    return new Promise(resolve => {
+      console.log(typeof file);
+      console.log(file);
+      fileUpload(file).then((fileRes) => {
+        if (fileRes.success && fileRes.data && fileRes.data.id){
+          resolve('/api/file/download/' + fileRes.data.id);
+        }
+      })
+    });
+  }
+
   return (
     <ProCard
       direction={'column'}
@@ -61,7 +75,7 @@ const Create : React.FC = () => {
           setDescription(e.currentTarget.value);
         }} style={{width: '100%', position: 'relative'}}/>
       </ProCard>
-      <EditMarkdown loading={loading}  markdownSrc={markdownSrc}/>
+      <EditMarkdown markdownSrc={markdownSrc} readonly={loading} onChange={(value) => setMarkdownSrc(value.text)} onImageUpload={imageUpload}/>
       <ProCard colSpan={24} layout={"center"} direction={"row"}>
         <ProCard colSpan={1} layout={"center"}>
           <Button disabled={loading} type={'primary'} onClick={save}>保存</Button>
