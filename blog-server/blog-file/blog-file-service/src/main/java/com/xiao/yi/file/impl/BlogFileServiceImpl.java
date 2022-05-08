@@ -51,6 +51,11 @@ public class BlogFileServiceImpl extends AbstractService<BlogFileModel, Long, Bl
         }
         Example<BlogFileModel> example = new Example<>();
         example.createCriteria().andIn(BlogFileModel::getId, List.of(ids.split(",")));
+        final List<BlogFileModel> list = findList(example);
+        if (CollectionUtil.isEmpty(list)) {
+            return 0;
+        }
+        minioClient.removeObjects(minioBucket, list.stream().map(BlogFileModel::getPath).collect(Collectors.toList()));
         return delete(example);
     }
 
@@ -58,6 +63,11 @@ public class BlogFileServiceImpl extends AbstractService<BlogFileModel, Long, Bl
     public int delete(Collection<Long> ids) {
         Example<BlogFileModel> example = new Example<>();
         example.createCriteria().andIn(BlogFileModel::getId, ids);
+        final List<BlogFileModel> list = findList(example);
+        if (CollectionUtil.isEmpty(list)) {
+            return 0;
+        }
+        minioClient.removeObjects(minioBucket, list.stream().map(BlogFileModel::getPath).collect(Collectors.toList()));
         return delete(example);
     }
 

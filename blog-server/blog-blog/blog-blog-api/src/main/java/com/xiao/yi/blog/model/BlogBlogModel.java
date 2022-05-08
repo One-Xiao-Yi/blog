@@ -3,6 +3,8 @@ package com.xiao.yi.blog.model;
 import io.mybatis.provider.Entity;
 import page.PageModel;
 
+import java.util.Date;
+
 @Entity.Table(value = "blog_blog")
 public class BlogBlogModel extends PageModel {
 
@@ -20,6 +22,9 @@ public class BlogBlogModel extends PageModel {
 
     @Entity.Column(value = "created_by")
     private Long createdBy;
+
+    @Entity.Column(value = "when_created")
+    private Date whenCreated;
 
     private String src;
 
@@ -69,5 +74,13 @@ public class BlogBlogModel extends PageModel {
 
     public void setSrc(String src) {
         this.src = src;
+    }
+
+    public Date getWhenCreated() {
+        return whenCreated;
+    }
+
+    public void setWhenCreated(Date whenCreated) {
+        this.whenCreated = whenCreated;
     }
 }

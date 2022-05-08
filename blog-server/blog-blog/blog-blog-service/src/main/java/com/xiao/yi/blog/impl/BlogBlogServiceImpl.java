@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.MatchResult;
@@ -67,10 +68,13 @@ public class BlogBlogServiceImpl extends AbstractService<BlogBlogModel, Long, Bl
                 .map(item -> item.replace("/", ""))
                 .map(Long::parseLong)
                 .collect(Collectors.toList());
+        entity.setWhenCreated(new Date());
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(entity.getSrc().getBytes(StandardCharsets.UTF_8))){
             final BlogFileModel file = fileService.upload(byteArrayInputStream);
             entity.setPath(file.getId().toString());
-            return super.save(entity);
+            final BlogBlogModel blog = super.save(entity);
+            fileService.commit(entity.getId(), fileIds);
+            return blog;
         } catch (Exception e) {
             throw new RuntimeException("上传文件失败", e);
         }

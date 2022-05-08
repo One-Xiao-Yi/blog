@@ -7,5 +7,6 @@
         <result property="description" column="description" jdbcType="VARCHAR"/>
         <result property="path" column="path" jdbcType="VARCHAR"/>
         <result property="createdBy" column="created_by" jdbcType="BIGINT"/>
+        <result property="whenCreated" column="when_created" jdbcType="DATE"/>
     </resultMap>
 </mapper>

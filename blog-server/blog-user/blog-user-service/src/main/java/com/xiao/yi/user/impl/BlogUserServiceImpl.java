@@ -3,18 +3,25 @@ package com.xiao.yi.user.impl;
 import cn.hutool.core.util.ObjectUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.xiao.yi.user.mapper.BlogUserMapper;
+import com.xiao.yi.file.api.BlogFileService;
 import com.xiao.yi.user.api.BlogUserService;
+import com.xiao.yi.user.mapper.BlogUserMapper;
 import com.xiao.yi.user.model.BlogUserModel;
 import io.mybatis.mapper.example.Example;
 import io.mybatis.service.AbstractService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reponse.ResponseModel;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
 public class BlogUserServiceImpl extends AbstractService<BlogUserModel, Long, BlogUserMapper> implements BlogUserService {
+
+    @Autowired
+    private BlogFileService fileService;
+
     @Override
     public ResponseModel<BlogUserModel> page(BlogUserModel blogUserModel) {
         Page<Object> page = null;
@@ -42,7 +49,11 @@ public class BlogUserServiceImpl extends AbstractService<BlogUserModel, Long, Bl
 
     @Override
     public BlogUserModel saveModel(BlogUserModel blogUserModel) {
-        return save(blogUserModel);
+        final BlogUserModel userModel = save(blogUserModel);
+        if (ObjectUtil.isNotEmpty(blogUserModel.getAvatar())) {
+            fileService.commit(userModel.getId(), Collections.singletonList(Long.parseLong(blogUserModel.getAvatar())));
+        }
+        return userModel;
     }
 
     @Override

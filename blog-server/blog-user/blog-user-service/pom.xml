@@ -26,6 +26,11 @@
             <artifactId>blog-user-controller</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.xiaoyi</groupId>
+            <artifactId>blog-file-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
