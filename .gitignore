@@ -33,3 +33,5 @@ blog-ui/build
 
 **/**/target
 
+/blog-server/blog-start/src/main/resources/public/*
+

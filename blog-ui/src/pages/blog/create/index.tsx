@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {useModel} from "@/.umi/plugin-model/useModel";
+import {useModel} from "@@/plugin-model/useModel";
 import ProCard from "@ant-design/pro-card";
 import {Button, Input, message} from "antd";
 import {fileUpload, getBlogDetail, saveBlog} from "@/services/ant-design-pro/api";
