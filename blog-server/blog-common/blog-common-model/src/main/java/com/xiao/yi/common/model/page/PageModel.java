@@ -1,4 +1,4 @@
-package page;
+package com.xiao.yi.common.model.page;
 
 import com.github.pagehelper.Page;
 
@@ -11,6 +11,12 @@ public class PageModel {
     private Integer pageSize;
 
     private Long total;
+
+    public void clearParam(){
+        current = null;
+        pageSize = null;
+        total = null;
+    }
 
     public Integer getCurrent() {
         return current;

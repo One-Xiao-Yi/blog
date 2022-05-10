@@ -3,14 +3,14 @@ package com.xiao.yi.user.controller;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.crypto.digest.DigestUtil;
+import com.xiao.yi.common.model.reponse.ResponseModel;
+import com.xiao.yi.common.web.utils.JwtCommonUtils;
 import com.xiao.yi.user.api.BlogUserService;
 import com.xiao.yi.user.model.BlogUserModel;
 import com.xiao.yi.user.utils.JwtUtils;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
-import reponse.ResponseModel;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,17 +30,17 @@ public class LoginController {
     private BlogUserService userService;
 
     @Autowired
+    private JwtCommonUtils jwtCommonUtils;
+
+    @Autowired
     private JwtUtils jwtUtils;
 
     @Value("${user.registry.invite.code}")
     private String inviteCode;
 
-    @Value("${user.login.jwt.header:Authorization}")
-    private String header;
-
     @PostMapping("/login")
     public ResponseModel<String> login(@RequestBody BlogUserModel userModel,
-                                              HttpServletResponse response){
+                                       HttpServletResponse response){
         Assert.isTrue(ObjectUtil.isAllNotEmpty(userModel.getAccount(), userModel.getPassword()), "信息填写不完整");
         BlogUserModel user = getByAccount(userModel.getAccount());
         String saltPassword = DigestUtil.md5Hex(userModel.getPassword() + user.getUuid());
@@ -53,15 +53,11 @@ public class LoginController {
     }
 
     @PostMapping("/refreshToken")
-    public ResponseModel<Void> refreshToken(HttpServletRequest request, HttpServletResponse response) {
-        String token = request.getHeader(this.header);
-        Assert.notEmpty(token, "没有token，无法刷新新token");
-        jwtUtils.verify(token);
-        String account = jwtUtils.getAccount(token);
+    public ResponseModel<String> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        jwtCommonUtils.verify(request);
+        String account = jwtCommonUtils.getAccount(request);
         BlogUserModel user = getByAccount(account);
-        String newToken = jwtUtils.sign(user);
-        response.setHeader(header, newToken);
-        return ResponseModel.success();
+        return ResponseModel.success(jwtUtils.sign(user));
     }
 
     @PostMapping("/registry")
@@ -79,7 +75,7 @@ public class LoginController {
 
     @GetMapping("/userInfo")
     public ResponseModel<BlogUserModel> userInfo(HttpServletRequest request){
-        String account = jwtUtils.getAccount(request.getHeader(header));
+        String account = jwtCommonUtils.getAccount(request);
         Assert.notEmpty(account, "token格式错误");
         BlogUserModel userModel = getByAccount(account);
         userModel.setPassword(null);

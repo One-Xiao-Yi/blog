@@ -1,31 +1,31 @@
 package com.xiao.yi.blog.impl;
 
-import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.xiao.yi.blog.api.BlogBlogService;
 import com.xiao.yi.blog.mapper.BlogBlogMapper;
 import com.xiao.yi.blog.model.BlogBlogModel;
+import com.xiao.yi.common.model.model.CurrentUserModel;
+import com.xiao.yi.common.model.reponse.ResponseModel;
+import com.xiao.yi.common.web.utils.JwtCommonUtils;
 import com.xiao.yi.file.api.BlogFileService;
 import com.xiao.yi.file.model.BlogFileModel;
 import io.mybatis.mapper.example.Example;
 import io.mybatis.service.AbstractService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import reponse.ResponseModel;
 
-import java.io.BufferedInputStream;
+import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -44,6 +44,12 @@ public class BlogBlogServiceImpl extends AbstractService<BlogBlogModel, Long, Bl
     @Autowired
     private BlogFileService fileService;
 
+    @Autowired
+    private HttpServletRequest request;
+
+    @Autowired
+    private JwtCommonUtils jwtCommonUtils;
+
     @Override
     public List<BlogBlogModel> getList(BlogBlogModel blogModel) {
         return findList(blogModel);
@@ -60,7 +66,11 @@ public class BlogBlogServiceImpl extends AbstractService<BlogBlogModel, Long, Bl
 
     @Override
     public BlogBlogModel save(BlogBlogModel entity) {
-        Assert.isTrue(ObjectUtil.isAllNotEmpty(entity.getSrc(), entity.getTitle(), entity.getDescription(), entity.getCreatedBy()), "信息不完整");
+        Assert.isTrue(ObjectUtil.isAllNotEmpty(entity.getSrc(),
+                entity.getTitle()), "信息不完整");
+        final CurrentUserModel currentUserModel = jwtCommonUtils.currentUser(request);
+        entity.setCreatedBy(currentUserModel.getId());
+        entity.setWhenCreated(new Date());
         List<Long> fileIds = IMAGE_PATTERN.matcher(entity.getSrc()).results()
                 .map(MatchResult::group)
                 .map(item -> FILE_ID_PATTERN.matcher(item).results().map(MatchResult::group).findFirst().orElse(null))
@@ -68,12 +78,18 @@ public class BlogBlogServiceImpl extends AbstractService<BlogBlogModel, Long, Bl
                 .map(item -> item.replace("/", ""))
                 .map(Long::parseLong)
                 .collect(Collectors.toList());
-        entity.setWhenCreated(new Date());
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(entity.getSrc().getBytes(StandardCharsets.UTF_8))){
             final BlogFileModel file = fileService.upload(byteArrayInputStream);
             entity.setPath(file.getId().toString());
             final BlogBlogModel blog = super.save(entity);
-            fileService.commit(entity.getId(), fileIds);
+            if (CollectionUtil.isEmpty(fileIds) && ObjectUtil.isNotEmpty(blog.getCover())) {
+                fileIds = Collections.singletonList(Long.parseLong(blog.getCover()));
+            } else if (CollectionUtil.isNotEmpty(fileIds) && ObjectUtil.isNotEmpty(blog.getCover())) {
+                fileIds.add(Long.parseLong(blog.getCover()));
+            }
+            if (CollectionUtil.isNotEmpty(fileIds)) {
+                fileService.commit(entity.getId(), fileIds);
+            }
             return blog;
         } catch (Exception e) {
             throw new RuntimeException("上传文件失败", e);
@@ -82,7 +98,15 @@ public class BlogBlogServiceImpl extends AbstractService<BlogBlogModel, Long, Bl
 
     @Override
     public BlogBlogModel update(BlogBlogModel entity) {
-        Assert.isTrue(ObjectUtil.isAllNotEmpty(entity.getSrc(), entity.getTitle(), entity.getDescription(), entity.getCreatedBy()), "信息不完整");
+        Assert.isTrue(ObjectUtil.isAllNotEmpty(entity.getId(),
+                entity.getSrc(),
+                entity.getTitle()), "信息不完整");
+        final BlogBlogModel oldBlog = findById(entity.getId());
+        Assert.notNull(oldBlog, "资源不存在");
+        final CurrentUserModel currentUserModel = jwtCommonUtils.currentUser(request);
+        Assert.isTrue(oldBlog.getCreatedBy().equals(currentUserModel.getId()), "不可操作他人资源");
+        entity.setWhenCreated(oldBlog.getWhenCreated());
+        entity.setCreatedBy(oldBlog.getCreatedBy());
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(entity.getSrc().getBytes(StandardCharsets.UTF_8))){
             final BlogFileModel file = fileService.upload(byteArrayInputStream);
             entity.setPath(file.getId().toString());
@@ -98,7 +122,25 @@ public class BlogBlogServiceImpl extends AbstractService<BlogBlogModel, Long, Bl
         if (blogModel.pageCheck()) {
             page = PageHelper.startPage(blogModel.getCurrent(), blogModel.getPageSize());
         }
-        ResponseModel<BlogBlogModel> response = ResponseModel.success(findList(blogModel));
+        String orderFields = blogModel.getOrderFields();
+        String orderType = blogModel.getOrderType();
+        blogModel.clearParam();
+        final Map<String, Object> beanValueMap = BeanUtil.beanToMap(blogModel, true, true);
+        Example<BlogBlogModel> example = new Example<BlogBlogModel>();
+        final Example.Criteria<BlogBlogModel> criteria = example.createCriteria();
+        if (CollectionUtil.isNotEmpty(beanValueMap)) {
+            beanValueMap.forEach((key, value) -> {
+                criteria.andCondition(key + "=", value);
+            });
+        }
+        if (ObjectUtil.isEmpty(orderType)) {
+            orderType = Example.Order.ASC.name();
+        }
+        if (ObjectUtil.isNotEmpty(orderFields)) {
+            orderFields = Arrays.stream(orderFields.split(",")).map(StrUtil::toUnderlineCase).collect(Collectors.joining(","));
+            example.setOrderByClause(orderFields + " " + orderType);
+        }
+        ResponseModel<BlogBlogModel> response = ResponseModel.success(findList(example));
         if (null != page) {
             response.setTotal(page.getTotal());
             response.setCurrent(blogModel.getCurrent());
@@ -114,6 +156,9 @@ public class BlogBlogServiceImpl extends AbstractService<BlogBlogModel, Long, Bl
         }
         Example<BlogBlogModel> example = new Example<>();
         example.createCriteria().andIn(BlogBlogModel::getId, List.of(ids.split(",")));
+        final List<BlogBlogModel> delList = findList(example);
+        final CurrentUserModel currentUserModel = jwtCommonUtils.currentUser(request);
+        Assert.isTrue(delList.stream().allMatch(item -> item.getCreatedBy().equals(currentUserModel.getId())), "不可操作他人资源");
         return delete(example);
     }
 }

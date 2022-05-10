@@ -29,7 +29,7 @@ const Login: React.FC = () => {
 
   const [success] = useState(null);
   const intl = useIntl();
-  const {initialState, setInitialState} = useModel('@@initialState')
+  const {setInitialState} = useModel('@@initialState')
 
   const handleSubmit = async (values: API.LoginParams) => {
     try {
@@ -41,7 +41,7 @@ const Login: React.FC = () => {
           defaultMessage: '登录成功！',
         });
         message.success(defaultLoginSuccessMessage);
-        localStorage.setItem(initialState?.tokenKey?initialState.tokenKey:"token", res.data);
+        localStorage.setItem("token", res.data);
         localStorage.setItem("whenLogin", new Date().getTime() + '');
         let userInfoResponse = await getUserInfo(res.data);
         userInfoResponse.data.avatar = '/api/file/download/' + userInfoResponse.data.avatar;

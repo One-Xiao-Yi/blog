@@ -1,8 +1,7 @@
 package com.xiao.yi.blog.api;
 
-import com.github.pagehelper.PageInfo;
 import com.xiao.yi.blog.model.BlogBlogModel;
-import reponse.ResponseModel;
+import com.xiao.yi.common.model.reponse.ResponseModel;
 
 import java.util.List;
 

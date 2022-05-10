@@ -1,10 +1,10 @@
 package com.xiao.yi.user.controller;
 
+import com.xiao.yi.common.model.reponse.ResponseModel;
 import com.xiao.yi.user.api.BlogUserService;
 import com.xiao.yi.user.model.BlogUserModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import reponse.ResponseModel;
 
 @RestController
 @RequestMapping("/api")

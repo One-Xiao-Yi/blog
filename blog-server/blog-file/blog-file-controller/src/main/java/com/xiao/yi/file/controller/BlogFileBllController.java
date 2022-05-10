@@ -1,10 +1,10 @@
 package com.xiao.yi.file.controller;
 
+import com.xiao.yi.common.model.reponse.ResponseModel;
 import com.xiao.yi.file.api.BlogFileBllService;
 import com.xiao.yi.file.model.BlogFileBllModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import reponse.ResponseModel;
 
 @RestController
 @RequestMapping("/api/fileBll")

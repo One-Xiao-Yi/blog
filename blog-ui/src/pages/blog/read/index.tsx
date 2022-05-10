@@ -10,7 +10,6 @@ const ReadBlog : React.FC = () => {
   const [blog, setBlog] = useState<API.BlogModel>({
     id: "",
     createdBy: "",
-    description: "",
     path: "",
     src: "",
     title: ""

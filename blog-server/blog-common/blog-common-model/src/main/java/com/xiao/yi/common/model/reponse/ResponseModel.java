@@ -1,6 +1,6 @@
-package reponse;
+package com.xiao.yi.common.model.reponse;
 
-import page.PageModel;
+import com.xiao.yi.common.model.page.PageModel;
 
 import java.util.List;
 
@@ -10,6 +10,8 @@ import java.util.List;
  * 统一响应数据结构
  */
 public class ResponseModel<T> extends PageModel {
+
+    private Integer code;
 
     private T data;
 
@@ -31,6 +33,12 @@ public class ResponseModel<T> extends PageModel {
         return responseModel;
     }
 
+    public static <T> ResponseModel<T> error(){
+        ResponseModel<T> responseModel = new ResponseModel<>();
+        responseModel.success = false;
+        return responseModel;
+    }
+
     public static <T> ResponseModel<T> error(Exception e){
         ResponseModel<T> responseModel = new ResponseModel<>();
         responseModel.msg = e.getMessage();
@@ -44,12 +52,26 @@ public class ResponseModel<T> extends PageModel {
         responseModel.success = false;
         return responseModel;
     }
+    public static <T> ResponseModel<T> error(Integer code){
+        ResponseModel<T> responseModel = new ResponseModel<>();
+        responseModel.code = code;
+        responseModel.success = false;
+        return responseModel;
+    }
 
     public static <T> ResponseModel<T> success() {
         ResponseModel<T> responseModel = new ResponseModel<>();
         responseModel.success = true;
         responseModel.msg = "ok";
         return responseModel;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public void setCode(Integer code) {
+        this.code = code;
     }
 
     public T getData() {

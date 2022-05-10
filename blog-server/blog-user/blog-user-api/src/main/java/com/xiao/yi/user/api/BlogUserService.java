@@ -1,7 +1,7 @@
 package com.xiao.yi.user.api;
 
+import com.xiao.yi.common.model.reponse.ResponseModel;
 import com.xiao.yi.user.model.BlogUserModel;
-import reponse.ResponseModel;
 
 import java.util.List;
 

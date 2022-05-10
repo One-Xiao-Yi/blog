@@ -1,21 +1,22 @@
 package com.xiao.yi.blog.model;
 
+import com.xiao.yi.common.model.order.PageOrderModel;
+import com.xiao.yi.common.model.page.PageModel;
 import io.mybatis.provider.Entity;
-import page.PageModel;
 
 import java.util.Date;
 
 @Entity.Table(value = "blog_blog")
-public class BlogBlogModel extends PageModel {
+public class BlogBlogModel extends PageOrderModel {
 
     @Entity.Column(value = "id", id = true, updatable = false, insertable = false)
     private Long id;
 
+    @Entity.Column(value = "cover")
+    private String cover;
+
     @Entity.Column(value = "title")
     private String title;
-
-    @Entity.Column(value = "description")
-    private String description;
 
     @Entity.Column(value = "path")
     private String path;
@@ -36,20 +37,20 @@ public class BlogBlogModel extends PageModel {
         this.id = id;
     }
 
+    public String getCover() {
+        return cover;
+    }
+
+    public void setCover(String cover) {
+        this.cover = cover;
+    }
+
     public String getTitle() {
         return title;
     }
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public String getPath() {

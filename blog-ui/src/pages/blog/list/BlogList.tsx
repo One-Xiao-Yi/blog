@@ -3,12 +3,15 @@ import {Divider, List, Skeleton} from "antd";
 import ProCard from "@ant-design/pro-card";
 import React from "react";
 import {history} from "@@/core/history";
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {deleteBlog} from "@/services/ant-design-pro/api";
 
 type Fn = () => API.BlogModel[] | void ;
 
 export interface BlogListProperty {
   blogs: API.BlogListResponse,
   getBlogs: Fn,
+  editable: boolean,
 }
 
 const BlogList : React.FC<BlogListProperty> = (props) => {
@@ -20,6 +23,23 @@ const BlogList : React.FC<BlogListProperty> = (props) => {
         blogId: toBlogId,
       }
     })
+  }
+
+  const toEdit = (blogId : string) => {
+    history.push({
+      pathname: "/blog/create",
+      query: {
+        blogId: blogId,
+      }
+    })
+  }
+
+  const toDelete = async (blogId: string) => {
+    const response : API.ResponseModel = await deleteBlog(blogId)
+    if (response.success) {
+      props.blogs.rows = [];
+      props.getBlogs();
+    }
   }
 
   return (
@@ -49,10 +69,18 @@ const BlogList : React.FC<BlogListProperty> = (props) => {
             overflowX: "hidden"
           }}
           renderItem={item => (
-            <List.Item key={item.id} onClick={() => toDetail(item.id || "")}>
-              <ProCard bordered hoverable title={item.title} direction={'row'} wrap>
-                <ProCard style={{height: 200}}>
-                  {item.description}
+            <List.Item key={item.id}>
+              <ProCard bordered hoverable direction={'row'} wrap
+              actions={props.editable ? [
+                <EditOutlined onClick={() => toEdit(item.id || '')} key="edit" />,
+                <DeleteOutlined onClick={() => toDelete(item.id || '')} key="delete" />
+              ] : []}>
+                <ProCard style={{height: 250}} layout={"center"} onClick={() => toDetail(item.id || "")}>
+                  <img src={item.cover?'/api/file/download/' + item.cover:'/api/file/download/12'} alt="avatar"
+                       style={{height: "100%"}} />
+                </ProCard>
+                <ProCard onClick={() => toDetail(item.id || "")}>
+                  {item.title}
                 </ProCard>
                 {/*<ProCard>*/}
                 {/*  <Tag color="green">tag</Tag>*/}

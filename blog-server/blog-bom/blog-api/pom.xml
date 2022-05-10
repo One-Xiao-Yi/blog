@@ -16,7 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>com.xiaoyi</groupId>
-            <artifactId>blog-common</artifactId>
+            <artifactId>blog-common-model</artifactId>
             <version>${project.version}</version>
         </dependency>
 

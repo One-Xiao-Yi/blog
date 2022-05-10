@@ -28,8 +28,10 @@ export async function getInitialState(): Promise<{
   let userInfo = undefined;
   if (token && whenLogin) {
     if (new Date().getTime() - parseInt(whenLogin) < 2 * 60 * 60 * 1000) {
-      userInfo = (await getUserInfo(token)).data;
-      userInfo.avatar = '/api/file/download/' + userInfo.avatar;
+      try {
+        userInfo = (await getUserInfo(token)).data;
+        userInfo.avatar = '/api/file/download/' + userInfo.avatar;
+      } catch (e) {}
     } else {
       localStorage.removeItem(tokenKey);
       localStorage.removeItem("whenLogin");

@@ -4,9 +4,9 @@
     <resultMap id="baseResultMap" type="com.xiao.yi.blog.model.BlogBlogModel">
         <id property="id" column="id" jdbcType="BIGINT"/>
         <result property="title" column="title" jdbcType="VARCHAR"/>
-        <result property="description" column="description" jdbcType="VARCHAR"/>
         <result property="path" column="path" jdbcType="VARCHAR"/>
         <result property="createdBy" column="created_by" jdbcType="BIGINT"/>
-        <result property="whenCreated" column="when_created" jdbcType="DATE"/>
+        <result property="whenCreated" column="when_created" jdbcType="DATETIME"/>
+        <result property="cover" column="cover" jdbcType="VARCHAR"/>
     </resultMap>
 </mapper>

@@ -2,9 +2,9 @@ package com.xiao.yi.blog.controller;
 
 import com.xiao.yi.blog.api.BlogBlogService;
 import com.xiao.yi.blog.model.BlogBlogModel;
+import com.xiao.yi.common.model.reponse.ResponseModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import reponse.ResponseModel;
 
 @RestController
 @RequestMapping("/api/blog")

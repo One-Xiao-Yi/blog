@@ -2,6 +2,7 @@
 /* eslint-disable */
 
 declare namespace API {
+
   type CurrentUser = {
     name?: string;
     avatar?: string;
@@ -32,6 +33,7 @@ declare namespace API {
   type ResponseModel = PageParams & {
     msg: string,
     success: boolean,
+    code: number,
   }
 
   type FileModel = {
@@ -45,16 +47,24 @@ declare namespace API {
 
   type BlogModel = {
     id?: string,
-    description: string,
     title: string,
     path?: string,
     createdBy: string,
     src?: string,
-    files?: string[],
+    cover?: string,
   }
 
   type BlogListResponse = ResponseModel & {
     rows?: BlogModel[],
+  }
+
+  type OrderQuery = {
+    orderFields?: string,
+    orderType?: string,
+  }
+
+  type BlogQueryModel = ResponseModel & OrderQuery & {
+    createdBy?: string,
   }
 
   type BlogObjectResponse = ResponseModel & {

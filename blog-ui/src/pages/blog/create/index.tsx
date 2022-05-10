@@ -1,37 +1,49 @@
-import React, {useState} from "react";
-import {useModel} from "@@/plugin-model/useModel";
+import React, {useEffect, useState} from "react";
+import {useModel} from "@/.umi/plugin-model/useModel";
 import ProCard from "@ant-design/pro-card";
 import {Button, Input, message} from "antd";
-import {fileUpload, saveBlog} from "@/services/ant-design-pro/api";
+import {fileUpload, getBlogDetail, saveBlog} from "@/services/ant-design-pro/api";
 import EditMarkdown from "@/pages/markdown/EditMarkdown";
+import ImageUpload from "@/pages/upload/image/ImageUpload";
+import {UnAuthError} from "@/exceptions/UnAuthException";
+import {history} from "umi";
 
 const Create : React.FC = () => {
 
   const [markdownSrc, setMarkdownSrc] = useState('');
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [blogId, setBlogId] = useState("");
-  const [files, setFiles] = useState<string[]>([]);
+  const [cover, setCover] = useState("");
 
-  const {initialState} = useModel('@@initialState');
+  const {initialState, setInitialState} = useModel('@@initialState');
+
+  useEffect(() => {
+    const blogId = history.location.query?.blogId?.toString();
+    if (blogId) {
+      getBlogDetail(blogId).then((res: API.BlogObjectResponse) => {
+        if (res.success && res.data) {
+          setMarkdownSrc(res.data.src || '');
+          setTitle(res.data.title);
+          setBlogId(res.data.id || '');
+          setCover(res.data.cover || '')
+        }
+      })
+    }
+  }, [])
 
   const save = async () => {
     if (loading) {
       return;
     }
     setLoading(true);
-    if (!description || description == "") {
-      setDescription(markdownSrc.slice(0, 200));
-    }
     if (initialState && initialState.currentUser && initialState.currentUser.id) {
       const blog: API.BlogModel = {
         id: blogId,
         title: title,
-        description: description,
         createdBy: initialState.currentUser.id,
         src: markdownSrc,
-        files: files,
+        cover: cover,
       }
       try {
         const blogRes : API.BlogObjectResponse = await saveBlog(blog);
@@ -42,7 +54,16 @@ const Create : React.FC = () => {
           message.error("保存失败：" + blogRes.msg);
         }
       } catch (e: any) {
-        message.error("保存失败：" + e.message);
+        if (e instanceof UnAuthError) {
+          setInitialState((prevInitialState: any) => ({
+            ...prevInitialState,
+            token: null,
+            currentUser: null,
+          }))
+          message.error("保存失败：" + e.message);
+        } else {
+          message.error("保存失败：" + e);
+        }
       } finally {
         setLoading(false);
       }
@@ -51,8 +72,6 @@ const Create : React.FC = () => {
 
   const imageUpload = async (file: any) => {
     return new Promise(resolve => {
-      console.log(typeof file);
-      console.log(file);
       fileUpload(file).then((fileRes) => {
         if (fileRes.success && fileRes.data && fileRes.data.id){
           resolve('/api/file/download/' + fileRes.data.id);
@@ -61,19 +80,21 @@ const Create : React.FC = () => {
     });
   }
 
+  const handleChange = (fileId: string) => {
+    setCover(fileId);
+  }
+
   return (
     <ProCard
       direction={'column'}
     >
       <ProCard colSpan={24} >
-        <Input placeholder={"标题"} required onInput={(e) => {
-          setTitle(e.currentTarget.value);
-        }} style={{width: '100%', position: 'relative'}}/>
+        <ImageUpload handChange={handleChange} uploadText={'上传封面'} cover={cover} />
       </ProCard>
       <ProCard colSpan={24} >
-        <Input placeholder={"描述"} onInput={(e) => {
-          setDescription(e.currentTarget.value);
-        }} style={{width: '100%', position: 'relative'}}/>
+        <Input placeholder={"标题"} required onInput={(e) => {
+          setTitle(e.currentTarget.value);
+        }} value={title} style={{width: '100%', position: 'relative'}}/>
       </ProCard>
       <EditMarkdown markdownSrc={markdownSrc} readonly={loading} onChange={(value) => setMarkdownSrc(value.text)} onImageUpload={imageUpload}/>
       <ProCard colSpan={24} layout={"center"} direction={"row"}>
@@ -81,7 +102,7 @@ const Create : React.FC = () => {
           <Button disabled={loading} type={'primary'} onClick={save}>保存</Button>
         </ProCard>
         <ProCard colSpan={1} layout={"center"}>
-          <Button disabled={loading} onClick={() => {history.back();}}>返回</Button>
+          <Button disabled={loading} onClick={() => {history.goBack();}}>返回</Button>
         </ProCard>
       </ProCard>
     </ProCard>

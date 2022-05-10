@@ -1,5 +1,6 @@
 package com.xiao.yi.file.controller;
 
+import com.xiao.yi.common.model.reponse.ResponseModel;
 import com.xiao.yi.file.api.BlogFileService;
 import com.xiao.yi.file.model.BlogFileModel;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import reponse.ResponseModel;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;

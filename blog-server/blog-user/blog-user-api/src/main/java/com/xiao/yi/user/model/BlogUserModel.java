@@ -1,7 +1,7 @@
 package com.xiao.yi.user.model;
 
+import com.xiao.yi.common.model.page.PageModel;
 import io.mybatis.provider.Entity;
-import page.PageModel;
 
 @Entity.Table(value = "blog_user")
 public class BlogUserModel extends PageModel {
